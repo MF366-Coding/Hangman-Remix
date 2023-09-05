@@ -2,10 +2,14 @@
 
 import random
 import nltk
+from tkinter import messagebox as mb
 import customtkinter as ctk
 import os
 import time
+import json
 from PIL import Image
+
+settings = {}
 
 win = ctk.CTk()
 win.title("Hangman Remix")
@@ -16,6 +20,7 @@ script_path = os.path.abspath(__file__)
 script_dir = os.path.abspath(os.path.dirname(script_path))
 assets_dir = os.path.join(script_dir, "assets")
 sprites_dir = os.path.join(assets_dir, "sprites")
+data_dir = os.path.join(script_dir, "data")
 
 light_logo = Image.open(os.path.join(sprites_dir, "LIGHT_LOGO.png"))
 dark_logo = Image.open(os.path.join(sprites_dir, "DARK_LOGO.png"))
@@ -35,6 +40,7 @@ small_italic = ctk.CTkFont("JetBrains Mono", 13, slant="italic")
 small_bold = ctk.CTkFont("JetBrains Mono", 13, "bold")
 small_bold_italic = ctk.CTkFont("JetBrains Mono", 13, "bold", "italic")
 
+"""
 def change_appearance():
     '''
     # button: ctk.CTkButton = None
@@ -65,33 +71,129 @@ def change_appearance():
     
     win._set_appearance_mode("dark")    
     time.sleep(1.5)
+"""
 
 '''
-def phase_1(previous_menu: function, home_menu: function, *widgets):
+def phase_1(previous_menu, home_menu, *widgets):
 '''
+
+def load_settings(check_only: bool = False) -> dict:
+    """
+    load_settings loads the settings of your game
+
+    Args:
+        check_only (bool, optional): Actually loads the settings if False. Defaults to False.
+
+    Returns:
+        dict: the settings!
+    """
+    global settings
+    
+    if not os.path.exists(data_dir):
+        os.mkdir(data_dir)
+        
+    settings_file = os.path.join(data_dir, "settings.json")
+    
+    if not os.path.exists(settings_file):
+        with open(settings_file, "w", encoding="utf-8") as f:
+            json.dump({
+                "nickname": "VeryCoolHangmanPlayer"
+            }, f)
+            f.close()
+    
+    if not check_only:    
+        with open(settings_file, "r", encoding="utf-8") as f:
+            settings = json.load(f)
+            f.close()
+            
+        return settings
+
+def save_settings():
+    """
+    save_settings saves the settings to the JSON file
+    """
+    load_settings(check_only=True)
+    
+    settings_file = os.path.join(data_dir, "settings.json")
+    
+    with open(settings_file, "w", encoding="utf-8") as f:
+        json.dump(settings, f)
+        f.close()
+
+def apply_changes(previous, *widgets, **kwargs) -> None:
+    """
+    apply_changes is a bridge between save_settings and the settings menu
+
+    It also connects other menus related to the settings menu.
+
+    Args:
+        previous (function): the previous menu opened
+    """
+    global settings
+    
+    if kwargs["nickname"] != settings["nickname"]:
+        settings["nickname"] = kwargs["nickname"]
+    
+    save_settings()
+    
+    previous(*widgets)
+    
+    return
 
 def settings_menu(previous, *widgets):
+    global settings
+    
     for widget in widgets:
         widget.destroy()
     
     label_0 = ctk.CTkLabel(win, text="")
     label_1 = ctk.CTkLabel(win, text="")
     
+    label_2 = ctk.CTkLabel(win, text="Nickname: ", font=body)
     label_3 = ctk.CTkLabel(win, text="SETTINGS", font=h1)
     
+    a = ctk.StringVar(win, value=settings["nickname"])
+    
+    entry_1 = ctk.CTkEntry(win, fg_color="white", text_color="black", placeholder_text_color="grey", placeholder_text="Insert your new nickname here.", textvariable=a, font=body)
+        
     butt_1 = ctk.CTkButton(win, text="Apply", font=h3, fg_color="green", text_color="black", hover_color="dark green", command=lambda:
-        previous(label_0, label_1, label_3, butt_1))
+        apply_changes(previous, label_0,
+                    label_1,
+                    label_3,
+                    entry_1,
+                    butt_1,
+                    label_2, 
+                    nickname=a.get(), itself=settings_menu))
     
     label_0.pack()
     label_3.pack()
+    label_2.pack()
+    entry_1.pack()
     label_1.pack()
     butt_1.pack()
-    
+
 def initial_phase(*widgets):
+    mb.showinfo("Hangman Remix", "Please wait while the main menu is loading.")
+    time.sleep(2.0)
+        
     for widget in widgets:
         widget.destroy()
     
     win.geometry(f"{light_logo.width+100}x{light_logo.height+200}")
+    
+    # Get the screen width and height
+    screen_width = win.winfo_screenwidth()
+    screen_height = win.winfo_screenheight()
+
+    # Get the height of the taskbar (if it's visible)
+    taskbar_height = screen_height - win.winfo_reqheight()
+
+    # Calculate the x and y coordinates to center the window above the taskbar
+    x = (screen_width - win.winfo_width()) // 2
+    y = (taskbar_height - win.winfo_height()) // 2
+
+    # Set the window's size and position
+    win.geometry(f"{light_logo.width+100}x{light_logo.height+200}+{x}+{y}")
     
     logo = ctk.CTkImage(light_logo, dark_logo, (light_logo.width, light_logo.height))
     
@@ -109,7 +211,7 @@ def initial_phase(*widgets):
     butt_1 = ctk.CTkButton(win, text="-> PLAY", font=h2, fg_color="orange", text_color="black", hover_color="yellow")
     butt_2 = ctk.CTkButton(win, text="Credits", font=h3, fg_color="dark blue", text_color="white", hover_color="purple")
     butt_3 = ctk.CTkButton(win, text="Settings", font=h3, fg_color="green", text_color="black", hover_color="cyan", command=lambda:
-        settings_menu(initial_phase, logo_packable, label_0, label_1, label_2, label_3, butt_1, butt_2, butt_3))
+        settings_menu(initial_phase, label_0, label_1, butt_1, butt_2, butt_3, label_2, label_3, logo_packable))
     '''
     butt_4 = ctk.CTkButton(win, text="Light Mode", font=h3, fg_color="white", text_color="black", hover_color="grey", command=lambda:
         change_appearance(butt_4))
@@ -125,6 +227,7 @@ def initial_phase(*widgets):
     '''
     label_2.pack()
 
+settings = load_settings()
 initial_phase()
 
 '''
