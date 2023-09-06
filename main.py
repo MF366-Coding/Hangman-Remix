@@ -172,9 +172,23 @@ def settings_menu(previous, *widgets):
     label_1.pack()
     butt_1.pack()
 
+
+def phase_1(previous, *widgets):
+    for widget in widgets:
+        widget.destroy()
+        
+    label_0 = ctk.CTkLabel(win, text="")
+    label_1 = ctk.CTkLabel(win, text="")
+    
+    label_2 = ctk.CTkLabel(win, text="SELECT A GAMEMODE", font=h1)
+    
+    label_1.pack()
+    label_2.pack()
+    # something goes here...
+    label_0.pack()
+
 def initial_phase(*widgets):
-    mb.showinfo("Hangman Remix", "Please wait while the main menu is loading.")
-    time.sleep(2.0)
+    time.sleep(1.25)
         
     for widget in widgets:
         widget.destroy()
