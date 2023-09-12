@@ -172,6 +172,12 @@ def settings_menu(previous, *widgets):
     label_1.pack()
     butt_1.pack()
 
+def classic_mode(previous, *widgets):
+    for widget in widgets:
+        widget.destroy()
+        
+    return
+
 
 def phase_1(previous, *widgets):
     for widget in widgets:
@@ -182,10 +188,18 @@ def phase_1(previous, *widgets):
     
     label_2 = ctk.CTkLabel(win, text="SELECT A GAMEMODE", font=h1)
     
+    label_3 = ctk.CTkLabel(win, text="")
+    
+    butt_1 = ctk.CTkButton(win, text="Classic", font=h3, hover_color="yellow", fg_color="orange", text_color="black", command=lambda:
+        classic_mode(phase_1, label_0, label_1, label_2, label_3, butt_2, butt_1))
+    butt_2 = ctk.CTkButton(win, text="Hardcore", font=h3, hover_color="red", fg_color="pink", text_color="black")
+    
     label_1.pack()
     label_2.pack()
-    # something goes here...
     label_0.pack()
+    butt_1.pack()
+    butt_2.pack()
+    label_3.pack()
 
 def initial_phase(*widgets):
     time.sleep(1.25)
@@ -222,7 +236,8 @@ def initial_phase(*widgets):
         
     label_3 = ctk.CTkLabel(win, text="Copyright (C) 2023  MF366", font=bold)
     
-    butt_1 = ctk.CTkButton(win, text="-> PLAY", font=h2, fg_color="orange", text_color="black", hover_color="yellow")
+    butt_1 = ctk.CTkButton(win, text="-> PLAY", font=h2, fg_color="orange", text_color="black", hover_color="yellow", command=lambda:
+        phase_1(initial_phase, label_0, label_1, butt_1, butt_2, butt_3, label_2, label_3, logo_packable))
     butt_2 = ctk.CTkButton(win, text="Credits", font=h3, fg_color="dark blue", text_color="white", hover_color="purple")
     butt_3 = ctk.CTkButton(win, text="Settings", font=h3, fg_color="green", text_color="black", hover_color="cyan", command=lambda:
         settings_menu(initial_phase, label_0, label_1, butt_1, butt_2, butt_3, label_2, label_3, logo_packable))
