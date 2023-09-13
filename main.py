@@ -172,12 +172,53 @@ def settings_menu(previous, *widgets):
     label_1.pack()
     butt_1.pack()
 
+
+def guess(word: str, letter: str):
+    _word = word.split("")
+    
+    # [?] How the hell will I do this?
+    
+
 def classic_mode(previous, *widgets):
     for widget in widgets:
         widget.destroy()
         
-    return
+    label_0 = ctk.CTkLabel(win, text="")
+    label_1 = ctk.CTkLabel(win, text="")
+    
+    # [!?] chatGPT break in here!
 
+    # chatGPT break in here!
+
+    # Download the NLTK words corpus if you haven't already
+    nltk.download('words')
+
+    # Get the list of English words from NLTK
+    english_words = nltk.corpus.words.words()
+
+    # Select a random word from the list
+    random_word = random.choice(english_words)
+    
+    label_2 = ctk.CTkLabel(win, text="HANGMAN - CLASSIC MODE", font=h1)
+    label_3 = ctk.CTkLabel(win, text='_' * len(random_word), font=h3)
+    
+    label_4 = ctk.CTkLabel(win, text="")
+    label_5 = ctk.CTkLabel(win, text="")
+    label_6 = ctk.CTkLabel(win, text="")
+    label_7 = ctk.CTkLabel(win, text="")
+    
+    butt_1 = ctk.CTkButton(win, text="GUESS", font=h3, hover_color="yellow", fg_color="orange", text_color="black", command=quit)
+    
+    win.bind("a", guess(random_word, "a"))
+    
+    label_0.pack()
+    label_2.pack()
+    label_1.pack()
+    label_4.pack()
+    label_3.pack()
+    label_5.pack()
+    label_7.pack()
+    
 
 def phase_1(previous, *widgets):
     for widget in widgets:
