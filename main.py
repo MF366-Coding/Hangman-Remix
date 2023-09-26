@@ -1,26 +1,54 @@
 # Copyright (C) 2023  MF366
 
 import random
-import nltk
 from tkinter import messagebox as mb
 import customtkinter as ctk
 import os
 import time
+import string
 import json
+from requests import get
 from PIL import Image
+import sys
+
+# [!!] VERY BUGGY CODE: DON'T RUN IT!! 
 
 settings = {}
-
-win = ctk.CTk()
-win.title("Hangman Remix")
-win._set_appearance_mode("dark")
-win.resizable(False, False)
 
 script_path = os.path.abspath(__file__)
 script_dir = os.path.abspath(os.path.dirname(script_path))
 assets_dir = os.path.join(script_dir, "assets")
 sprites_dir = os.path.join(assets_dir, "sprites")
 data_dir = os.path.join(script_dir, "data")
+
+lowercase_alphabet = list(string.ascii_lowercase)
+
+english_words = None
+
+try:
+    response = get("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt", timeout=5.0)
+    
+    with open(os.path.join(data_dir, "english_dict.txt"), "w", encoding="utf-8") as dict_eng:
+        dict_eng.write(response.text)
+        dict_eng.close()
+        
+        
+except Exception:
+    mb.showerror("Hangman Remix - Connection Error", "Error found while trying to download the english alpha words from english_words GitHub repository.\nYou must have internet connection!")
+    
+    if not os.path.exists(os.path.join(data_dir, "english_dict.txt")):
+        sys.exit()
+    
+finally:
+    with open(os.path.join(data_dir, "english_dict.txt"), "r", encoding="utf-8") as dict_eng:
+        english_words = dict_eng.read().split("\n")
+        dict_eng.close()
+
+
+win = ctk.CTk()
+win.title("Hangman Remix")
+win._set_appearance_mode("dark")
+win.resizable(False, False)
 
 light_logo = Image.open(os.path.join(sprites_dir, "LIGHT_LOGO.png"))
 dark_logo = Image.open(os.path.join(sprites_dir, "DARK_LOGO.png"))
@@ -173,43 +201,102 @@ def settings_menu(previous, *widgets):
     butt_1.pack()
 
 
-def guess(word: str, letter: str):
-    _word = word.split("")
+not_guessed_letters = lowercase_alphabet.copy()
+guesses_left = 6
+
+
+def remove_guesses(widget: ctk.CTkLabel) -> bool:
+    global guesses_left
+    
+    guesses_left -= 1
+    
+    if guesses_left <= 0:
+        widget.configure(text=f"{settings['nickname']} has no guesses left!")
+        return False
+    
+    widget.configure(text=f"{settings['nickname']} has {guesses_left} guesses left!")
+    
+    return True
+
+def reset_guess():
+    global not_guessed_letters, guesses_left
+    
+    not_guessed_letters = lowercase_alphabet.copy()
+    guesses_left = 6
+
+
+def guess(word: str, letter: str, widget, xwidget: ctk.CTkLabel, *widgets):
+    global guesses_left
+    
+    _letter = letter.lower()
+    _word = word
     
     # [?] How the hell will I do this?
+    # [*] Aight, here goes nothing!
     
-
+    # /-/ [!?] I'm still stuck here lol
+            
+    if _letter not in not_guessed_letters:
+        mb.showwarning("Hangman Remix", "You already guessed that letter!")
+    
+    elif _letter in word:
+        not_guessed_letters.remove(_letter)
+        
+        for let in not_guessed_letters:
+            _word = _word.replace(let, "_")
+            
+        widget.configure(text=_word)
+        
+        mb.showinfo("Hangman Remix", "Guessed it!")
+        
+    elif _letter not in word:
+        not_guessed_letters.remove(_letter)
+        
+        mb.showerror("Hangman Remix", "Wrong guess!")
+        
+        value = remove_guesses(xwidget)
+        
+        if not value:
+            mb.showerror("Hangman Remix", f"DEFEAT! You lost!\nThe word was: {word}")
+            phase_1(initial_phase, *widgets)
+        
+        
 def classic_mode(previous, *widgets):
     for widget in widgets:
         widget.destroy()
-        
+    
+    reset_guess()
+    
     label_0 = ctk.CTkLabel(win, text="")
     label_1 = ctk.CTkLabel(win, text="")
     
-    # [!?] chatGPT break in here!
-
-    # chatGPT break in here!
-
-    # Download the NLTK words corpus if you haven't already
-    nltk.download('words')
-
-    # Get the list of English words from NLTK
-    english_words = nltk.corpus.words.words()
-
-    # Select a random word from the list
-    random_word = random.choice(english_words)
+    random_word = "a"
+    
+    while len(random_word) <= 1:
+        random_word = random.choice(english_words).lower()
     
     label_2 = ctk.CTkLabel(win, text="HANGMAN - CLASSIC MODE", font=h1)
     label_3 = ctk.CTkLabel(win, text='_' * len(random_word), font=h3)
+    label_6 = ctk.CTkLabel(win, text=f"{settings['nickname']} has {guesses_left} guesses left!", font=h4)
+    label_8 = ctk.CTkLabel(win, text="Press a key to guess its letter.", font=body)
+    
+    butt_1 = ctk.CTkButton(win, text="Report a swear word!", font=h4, hover_color="yellow", fg_color="white", text_color="red", command=lambda:
+        classic_mode(label_0, label_1, label_2, label_3, butt_1, butt_2, butt_3, label_4, label_5, label_6, label_7, label_8, label_9))
+    
+    butt_2 = ctk.CTkButton(win, text="Restart", font=h4, hover_color="pink", fg_color="orange", text_color="black", command=lambda:
+        classic_mode(label_0, label_1, label_2, label_3, butt_1, butt_2, butt_3, label_4, label_5, label_6, label_7, label_8, label_9))
+    
+    butt_3 = ctk.CTkButton(win, text="<- Go back", font=h3, hover_color="purple", fg_color="blue", text_color="white", command=lambda:
+        previous(label_0, label_1, label_2, label_3, butt_1, butt_2, butt_3, label_4, label_5, label_6, label_7, label_8, label_9))
     
     label_4 = ctk.CTkLabel(win, text="")
     label_5 = ctk.CTkLabel(win, text="")
-    label_6 = ctk.CTkLabel(win, text="")
     label_7 = ctk.CTkLabel(win, text="")
+    label_9 = ctk.CTkLabel(win, text="")
     
-    butt_1 = ctk.CTkButton(win, text="GUESS", font=h3, hover_color="yellow", fg_color="orange", text_color="black", command=quit)
-    
-    win.bind("a", guess(random_word, "a"))
+    for i in lowercase_alphabet:
+        win.bind("<KeyPress-{}>".format(i), lambda event, i=i: guess(random_word, i, label_3, label_6, label_0, label_1, label_2, label_3, label_4, label_5, label_6, label_7, label_8, label_9, butt_1, butt_2))
+
     
     label_0.pack()
     label_2.pack()
@@ -217,7 +304,13 @@ def classic_mode(previous, *widgets):
     label_4.pack()
     label_3.pack()
     label_5.pack()
+    label_6.pack()
     label_7.pack()
+    label_8.pack()
+    butt_1.pack()
+    butt_2.pack()
+    butt_3.pack()
+    label_9.pack()
     
 
 def phase_1(previous, *widgets):
@@ -230,10 +323,15 @@ def phase_1(previous, *widgets):
     label_2 = ctk.CTkLabel(win, text="SELECT A GAMEMODE", font=h1)
     
     label_3 = ctk.CTkLabel(win, text="")
+    label_4 = ctk.CTkLabel(win, text="")
     
     butt_1 = ctk.CTkButton(win, text="Classic", font=h3, hover_color="yellow", fg_color="orange", text_color="black", command=lambda:
-        classic_mode(phase_1, label_0, label_1, label_2, label_3, butt_2, butt_1))
-    butt_2 = ctk.CTkButton(win, text="Hardcore", font=h3, hover_color="red", fg_color="pink", text_color="black")
+        classic_mode(phase_1, label_0, label_1, label_2, label_3, butt_2, butt_1, butt_3))
+    butt_2 = ctk.CTkButton(win, text="Hardcore", font=h3, hover_color="red", fg_color="pink", text_color="black", command=lambda:
+        mb.showerror("Hangman Remix", "Hardcore mode coming soon!"))
+    butt_3 = ctk.CTkButton(win, text="<- Go back", font=h3, hover_color="purple", fg_color="blue", text_color="white", command=lambda:
+        previous(label_0, label_1, label_2, label_3, butt_2, butt_1, butt_3))
+    
     
     label_1.pack()
     label_2.pack()
@@ -241,6 +339,22 @@ def phase_1(previous, *widgets):
     butt_1.pack()
     butt_2.pack()
     label_3.pack()
+    butt_3.pack()
+    label_4.pack()
+
+
+def on_quit(): 
+    x = mb.askyesnocancel("Hangman Remix", "The english dictionary takes up some space.\nWould you like to delete it before exiting?\n(It will be downloaded again the next time you open the game.)")
+    
+    if not x:
+        sys.exit()
+        
+    elif x:
+        os.remove(os.path.join(data_dir, "english_dict.txt"))
+        sys.exit()
+        
+    else:
+        pass
 
 def initial_phase(*widgets):
     time.sleep(1.25)
@@ -248,7 +362,7 @@ def initial_phase(*widgets):
     for widget in widgets:
         widget.destroy()
     
-    win.geometry(f"{light_logo.width+100}x{light_logo.height+200}")
+    win.geometry(f"{light_logo.width+100}x{light_logo.height+400}")
     
     # Get the screen width and height
     screen_width = win.winfo_screenwidth()
@@ -262,7 +376,7 @@ def initial_phase(*widgets):
     y = (taskbar_height - win.winfo_height()) // 2
 
     # Set the window's size and position
-    win.geometry(f"{light_logo.width+100}x{light_logo.height+200}+{x}+{y}")
+    win.geometry(f"{light_logo.width+100}x{light_logo.height+400}+{x}+{y}")
     
     logo = ctk.CTkImage(light_logo, dark_logo, (light_logo.width, light_logo.height))
     
@@ -278,80 +392,22 @@ def initial_phase(*widgets):
     label_3 = ctk.CTkLabel(win, text="Copyright (C) 2023  MF366", font=bold)
     
     butt_1 = ctk.CTkButton(win, text="-> PLAY", font=h2, fg_color="orange", text_color="black", hover_color="yellow", command=lambda:
-        phase_1(initial_phase, label_0, label_1, butt_1, butt_2, butt_3, label_2, label_3, logo_packable))
-    butt_2 = ctk.CTkButton(win, text="Credits", font=h3, fg_color="dark blue", text_color="white", hover_color="purple")
+        phase_1(initial_phase, label_0, label_1, butt_1, butt_3, label_2, label_3, butt_4, logo_packable))
     butt_3 = ctk.CTkButton(win, text="Settings", font=h3, fg_color="green", text_color="black", hover_color="cyan", command=lambda:
-        settings_menu(initial_phase, label_0, label_1, butt_1, butt_2, butt_3, label_2, label_3, logo_packable))
-    '''
-    butt_4 = ctk.CTkButton(win, text="Light Mode", font=h3, fg_color="white", text_color="black", hover_color="grey", command=lambda:
-        change_appearance(butt_4))
-    '''
+        settings_menu(initial_phase, label_0, label_1, butt_1, butt_3, label_2, butt_4, label_3, logo_packable))
+    butt_4 = ctk.CTkButton(win, text="Quit", font=h4, fg_color="red", text_color="black", hover_color="pink", command=on_quit)
     
     label_3.pack()
     label_1.pack()
     butt_1.pack()
-    butt_2.pack()
     butt_3.pack()
-    '''
     butt_4.pack()
-    '''
     label_2.pack()
 
 settings = load_settings()
 initial_phase()
+    
 
-'''
-# chatGPT break in here!
+win.protocol("WM_DELETE_WINDOW", on_quit)
 
-# Download the NLTK words corpus if you haven't already
-nltk.download('words')
-
-# Get the list of English words from NLTK
-english_words = nltk.corpus.words.words()
-
-# Select a random word from the list
-random_word = random.choice(english_words)
-
-# List of words for the game
-word_list = ["python", "hangman", "programming", "game", "code"]
-
-# Choose a random word from the list
-random_word = random.choice(word_list)
-
-# Initialize variables
-word_display = ["_"] * len(random_word)
-incorrect_guesses = 0
-max_attempts = 6  # You can adjust the number of allowed incorrect guesses
-
-# Main game loop
-while True:
-    # Display the current state of the word
-    print(" ".join(word_display))
-
-    # Ask the player for a guess
-    guess = input("Guess a letter: ").lower()
-
-    # Check if the guess is a single letter
-    if len(guess) != 1 or not guess.isalpha():
-        print("Please enter a single letter.")
-        continue
-
-    # Check if the guess is in the word
-    if guess in random_word:
-        # Update the word display with the correctly guessed letter
-        for i in range(len(random_word)):
-            if random_word[i] == guess:
-                word_display[i] = guess
-    else:
-        print("Incorrect guess.")
-        incorrect_guesses += 1
-
-    # Check if the player has won or lost
-    if "".join(word_display) == random_word:
-        print("Congratulations! You guessed the word:", random_word)
-        break
-    elif incorrect_guesses >= max_attempts:
-        print("Sorry, you've run out of attempts. The word was:", random_word)
-        break
-'''
 win.mainloop()
