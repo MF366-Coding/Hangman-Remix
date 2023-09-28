@@ -4,14 +4,11 @@ import random
 from tkinter import messagebox as mb
 import customtkinter as ctk
 import os
-import time
 import string
 import json
 from requests import get
 from PIL import Image
 import sys
-
-# [!!] VERY BUGGY CODE: DON'T RUN IT!! 
 
 settings = {}
 
@@ -281,13 +278,13 @@ def classic_mode(previous, *widgets):
     label_8 = ctk.CTkLabel(win, text="Press a key to guess its letter.", font=body)
     
     butt_1 = ctk.CTkButton(win, text="Report a swear word!", font=h4, hover_color="yellow", fg_color="white", text_color="red", command=lambda:
-        classic_mode(label_0, label_1, label_2, label_3, butt_1, butt_2, butt_3, label_4, label_5, label_6, label_7, label_8, label_9))
+        classic_mode(initial_phase, label_0, label_2, label_1, label_4, label_3, label_5, label_6, label_7, label_8, butt_1, butt_2, butt_3, label_9))
     
     butt_2 = ctk.CTkButton(win, text="Restart", font=h4, hover_color="pink", fg_color="orange", text_color="black", command=lambda:
-        classic_mode(label_0, label_1, label_2, label_3, butt_1, butt_2, butt_3, label_4, label_5, label_6, label_7, label_8, label_9))
+        classic_mode(initial_phase, label_0, label_2, label_1, label_4, label_3, label_5, label_6, label_7, label_8, butt_1, butt_2, butt_3, label_9))
     
     butt_3 = ctk.CTkButton(win, text="<- Go back", font=h3, hover_color="purple", fg_color="blue", text_color="white", command=lambda:
-        previous(label_0, label_1, label_2, label_3, butt_1, butt_2, butt_3, label_4, label_5, label_6, label_7, label_8, label_9))
+        previous(initial_phase, label_0, label_2, label_1, label_4, label_3, label_5, label_6, label_7, label_8, butt_1, butt_2, butt_3, label_9))
     
     label_4 = ctk.CTkLabel(win, text="")
     label_5 = ctk.CTkLabel(win, text="")
@@ -295,7 +292,7 @@ def classic_mode(previous, *widgets):
     label_9 = ctk.CTkLabel(win, text="")
     
     for i in lowercase_alphabet:
-        win.bind("<KeyPress-{}>".format(i), lambda event, i=i: guess(random_word, i, label_3, label_6, label_0, label_1, label_2, label_3, label_4, label_5, label_6, label_7, label_8, label_9, butt_1, butt_2))
+        win.bind("<KeyPress-{}>".format(i), lambda event, i=i: guess(random_word, i, label_3, label_6, label_0, label_2, label_1, label_4, label_3, label_6, label_5, label_7, label_8, butt_1, butt_2, butt_3, label_9))
 
     
     label_0.pack()
@@ -326,11 +323,11 @@ def phase_1(previous, *widgets):
     label_4 = ctk.CTkLabel(win, text="")
     
     butt_1 = ctk.CTkButton(win, text="Classic", font=h3, hover_color="yellow", fg_color="orange", text_color="black", command=lambda:
-        classic_mode(phase_1, label_0, label_1, label_2, label_3, butt_2, butt_1, butt_3))
+        classic_mode(phase_1, label_1, label_2, label_0, butt_1, butt_2, label_3, butt_3, label_4))
     butt_2 = ctk.CTkButton(win, text="Hardcore", font=h3, hover_color="red", fg_color="pink", text_color="black", command=lambda:
         mb.showerror("Hangman Remix", "Hardcore mode coming soon!"))
     butt_3 = ctk.CTkButton(win, text="<- Go back", font=h3, hover_color="purple", fg_color="blue", text_color="white", command=lambda:
-        previous(label_0, label_1, label_2, label_3, butt_2, butt_1, butt_3))
+        previous(label_1, label_2, label_0, butt_1, butt_2, label_3, butt_3, label_4))
     
     
     label_1.pack()
@@ -345,38 +342,23 @@ def phase_1(previous, *widgets):
 
 def on_quit(): 
     x = mb.askyesnocancel("Hangman Remix", "The english dictionary takes up some space.\nWould you like to delete it before exiting?\n(It will be downloaded again the next time you open the game.)")
-    
-    if not x:
-        sys.exit()
         
-    elif x:
+    if x:
         os.remove(os.path.join(data_dir, "english_dict.txt"))
-        sys.exit()
         
-    else:
-        pass
+    if x == None:
+        return
+        
+    win.destroy()
 
 def initial_phase(*widgets):
-    time.sleep(1.25)
+    # /-/ [!] Used for debugging
+    # /-/ time.sleep(1.25)
         
     for widget in widgets:
         widget.destroy()
     
     win.geometry(f"{light_logo.width+100}x{light_logo.height+400}")
-    
-    # Get the screen width and height
-    screen_width = win.winfo_screenwidth()
-    screen_height = win.winfo_screenheight()
-
-    # Get the height of the taskbar (if it's visible)
-    taskbar_height = screen_height - win.winfo_reqheight()
-
-    # Calculate the x and y coordinates to center the window above the taskbar
-    x = (screen_width - win.winfo_width()) // 2
-    y = (taskbar_height - win.winfo_height()) // 2
-
-    # Set the window's size and position
-    win.geometry(f"{light_logo.width+100}x{light_logo.height+400}+{x}+{y}")
     
     logo = ctk.CTkImage(light_logo, dark_logo, (light_logo.width, light_logo.height))
     
