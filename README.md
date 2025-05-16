@@ -1,7 +1,7 @@
 # Hangman Remix (a.k.a. Hangman)
 Copyright (C) 2023  MF366
 
-## *The development is on hold right now.*
+## ⚠ *I'm sorry to inform I sadly cannot maintain this project anymore.*
 
 # Credits to...
 - [**dwyl**](https://github.com/dwyl) for its [**english-words**](https://github.com/dwyl/english-words) repository, that allowed me to get this game working
